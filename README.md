@@ -1,18 +1,14 @@
-# [Geoip2Influx](https://github.com/gilbN/geoip2influx)
+# [Geoip2Influx](https://github.com/leo15dev/geoip2influx)
 
-[![Docker Cloud Build Status](https://img.shields.io/docker/cloud/build/gilbn/geoip2influx?style=for-the-badge)](https://hub.docker.com/r/gilbn/geoip2influx/builds)
-[![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/gilbn/geoip2influx?color=blue&style=for-the-badge)](https://hub.docker.com/r/gilbn/geoip2influx)
-[![Docker Pulls](https://img.shields.io/docker/pulls/gilbn/geoip2influx?color=blue&style=for-the-badge)](https://hub.docker.com/r/gilbn/geoip2influx)
-[![GitHub](https://img.shields.io/github/license/gilbn/geoip2influx?color=blue&style=for-the-badge)](https://github.com/gilbN/geoip2influx/blob/master/LICENSE)
-[![Discord](https://img.shields.io/discord/591352397830553601?color=blue&style=for-the-badge)](https://discord.gg/HSPa4cz)
-[![](https://img.shields.io/badge/Blog-technicalramblings.com-blue?style=for-the-badge)](https://technicalramblings.com/)
 ***
 
 A python script that will parse the nginx access.log and send geolocation metrics and log metrics to InfluxDB
 
-![](https://i.imgur.com/mh0IhYA.jpg)
+![](https://i.imgur.com/w6kVRVW.jpeg)
 
-### For the linuxserver/letsencrypt docker mod, click here : https://github.com/linuxserver/docker-mods/tree/swag-geoip2influx
+Country: RFC 1918 for IPv4 Private Address (City: Lan)
+
+Country: ULA for IPv6 Private Address (City: Lan)
 
 ***
 
@@ -79,91 +75,56 @@ Get your licence key here: https://www.maxmind.com/en/geolite2/signup
 
 #### InfluxDB v2.x and v1.8x is supported.
 
-#### Note: The Grafana dashboard currently only supports InfluxDB v1.8.x
-
 The InfluxDB database/bucket and retention rules will be created automatically with the name you choose.
 
 ```
 -e INFLUX_DATABASE=geoip2influx or -e INFLUXDB_V2_BUCKET=geoip2influx
 ```
 
-### Docker
-
-```bash
-docker create \
-  --name=geoip2influx \
-  -e PUID=1000 \
-  -e PGID=1000 \
-  -e TZ=Europe/Oslo \
-  -e INFLUX_HOST=<influxdb host> \
-  -e INFLUX_HOST_PORT=<influxdb port> \
-  -e MAXMINDDB_LICENSE_KEY=<license key>\
-  -e MAXMINDDB_USER_ID=<account id>\
-  -v /path/to/appdata/geoip2influx:/config \
-  -v /path/to/nginx/accesslog/:/config/log/nginx/ \
-  --restart unless-stopped \
-  ghcr.io/gilbn/geoip2influx
-```
-
 ### Docker compose
 
 ```yaml
-version: "2.1"
 services:
   geoip2influx:
-    image: ghcr.io/gilbn/geoip2influx
+    image: xcxxcxcxz/geoip2influx:test
     container_name: geoip2influx
+    network_mode: bridg
     environment:
       - PUID=1000
       - PGID=1000
-      - TZ=Europe/Oslo
+      - TZ=Asia/Taipei
       - INFLUX_HOST=<influxdb host>
       - INFLUX_HOST_PORT=<influxdb port>
       - MAXMINDDB_LICENSE_KEY=<license key>
       - MAXMINDDB_USER_ID=<account id>
+      - SEND_NGINX_LOGS=true
     volumes:
       - /path/to/appdata/geoip2influx:/config
-      - /path/to/nginx/accesslog/:/config/log/nginx/
+      - /var/log/nginx:/config/log/nginx   
     restart: unless-stopped
 ```
 
-**InfluxDB2 examples**
-
-```bash
-docker create \
-  --name=geoip2influx \
-  -e PUID=1000 \
-  -e PGID=1000 \
-  -e TZ=Europe/Oslo \
-  -e INFLUXDB_V2_URL=<influxdb url> \
-  -e INFLUXDB_V2_TOKEN=<influxdb token> \
-  -e USE_INFLUXDB_V2=true \
-  -e MAXMINDDB_LICENSE_KEY=<license key>\
-  -e MAXMINDDB_USER_ID=<account id>\
-  -v /path/to/appdata/geoip2influx:/config \
-  -v /path/to/nginx/accesslog/:/config/log/nginx/ \
-  --restart unless-stopped \
-  ghcr.io/gilbn/geoip2influx
-```
+**InfluxDB2 examples** (Not yet tested, but it should be work)
 
 ```yaml
-version: "2.1"
 services:
   geoip2influx:
-    image: ghcr.io/gilbn/geoip2influx
+    image: xcxxcxcxz/geoip2influx:test
     container_name: geoip2influx
+    network_mode: bridg
     environment:
       - PUID=1000
       - PGID=1000
-      - TZ=Europe/Oslo
+      - TZ=Asia/Taipei
       - INFLUXDB_V2_URL=<influxdb url>
       - INFLUXDB_V2_TOKEN=<influxdb token>
       - USE_INFLUXDB_V2=true
       - MAXMINDDB_LICENSE_KEY=<license key>
       - MAXMINDDB_USER_ID=<account id>
+      - SEND_NGINX_LOGS=true
     volumes:
       - /path/to/appdata/geoip2influx:/config
-      - /path/to/nginx/accesslog/:/config/log/nginx/
+      - /var/log/nginx:/config/log/nginx    
     restart: unless-stopped
 ```
 
@@ -171,11 +132,9 @@ services:
 
 ## Grafana dashboard: 
 
-Use [nginx_logs_geo_map.json](/nginx_logs_geo_map.json)
 
-### Note
 
-Currently only supports InfluxDB 1.8.x.
+
 
 ***
 
@@ -185,23 +144,38 @@ Nginx needs to be compiled with the geoip2 module: https://github.com/leev/ngx_h
 
 1. Add the following to the http block in your `nginx.conf` file:
 
+   The log format is compatible with fail2ban in my personal experience, but it should be slightly adjusted according to your specific needs.
+
 ```nginx
-geoip2 /config/geoip2db/GeoLite2-City.mmdb {
-auto_reload 5m;
-$geoip2_data_country_iso_code country iso_code;
-$geoip2_data_city_name city names en;
+#geoip2 /config/geoip2db/GeoLite2-City.mmdb {
+geoip2 /usr/share/GeoIP/GeoLite2-Country.mmdb {
+auto_reload 60m;
+$geoip2_metadata_country_build metadata build_epoch;
+$geoip2_data_country_code default=TW country iso_code;
+$geoip2_data_country_name country names en;
 }
 
-log_format custom '$remote_addr - $remote_user [$time_local]'
-           '"$request" $status $body_bytes_sent'
-           '"$http_referer" $host "$http_user_agent"'
-           '"$request_time" "$upstream_connect_time"'
-           '"$geoip2_data_city_name" "$geoip2_data_country_iso_code"';
+log_format main
+#log_format custom
+'$remote_addr - $remote_user [$time_local] '
+'"$request" '
+'$status $body_bytes_sent '
+'"$http_referer" '
+'"$host" '
+'"$http_user_agent" '
+'"$request_time" '
+'"$upstream_connect_time" '
+'"$geoip2_data_city_name" '
+'"$geoip2_data_country_iso_code" '
+'"$http_cf_ipcountry" '
+'"$http_x_forwarded_for"';
+
+access_log  /var/log/nginx/access.log  main;
  ```
  
- 2. Set the access log use the `custom` log format. 
+ 2. Or set the access log use the `custom` log format. 
  ```nginx
- access_log /config/log/nginx/access.log custom;
+access_log /config/log/nginx/access.log custom;
  ```
 
 ### Multiple log files
@@ -224,26 +198,16 @@ Then use the `/config/log/nginx/access.log` file in the `NGINX_LOG_PATH` variabl
 
 ## Updates 
 
-**18.08.24** - Rename env from USE_INFLUX_V2 to USE_INFLUXDB_V2.
-
-**10.08.24** - Add support for InfluxDB2. 
-
-**06.08.24** - Complete refactor of the python code. Deprecate the old geoip2influx.py file.
-
-**28.07.24** - Refactor to alpine 3.20. New env required. MAXMINDDB_USER_ID. 
-
-**21.06.20** - Added $host(domain) to the nginx log metrics. This will break your nginx logs parsing, as you need to update the custom log format.
-
-**06.06.20** - Added influx retention policy to try and mitigate max-values-per-tag limit exceeded errors.
-
-  * `-e INFLUX_RETENTION` Default 30d
-  * `-e INFLUX_SHARD` Default 2d
-  * It will only add the retention policy if the database doesn't exist.
-
-**30.05.20** - Added logging. Use `-e GEOIP2INFLUX_LOG_LEVEL` to set the log level.
-
-**15.05.20** - Removed `GEOIP2_KEY` and `GEOIP_DB_PATH`variables. With commit https://github.com/linuxserver/docker-letsencrypt/commit/75b9685fdb3ec6edda590300f289b0e75dd9efd0 the letsencrypt container now natively supports downloading and updating(weekly) the GeoLite2-City database!
+**28.06.26** - New Style, Fixed Nginx Log Rotation Issue ( Previously, during Log Rotation, you needed to restart geoip2influx to continue reading new logs.) 
+```
+28/06/2026 00:08:01 | MainThread        | geoip2influx | INFO     | (logparser.follow_file|line:310) | Log rotation detected on /config/log/nginx/access.log (Inode changed from 5810116 to 5810130). Switching handles. |
+28/06/2026 00:08:01 | MainThread        | geoip2influx | INFO     | (logparser.follow_file|line:281) | Successfully opened newly rotated file /config/log/nginx/access.log (Inode: 5810130). |
+```
 
 ***
 
-Adapted source: https://github.com/ratibor78/geostat
+Adapted source: 
+
+1. https://github.com/ratibor78/geostat
+
+2. https://github.com/GilbN/geoip2influx 
