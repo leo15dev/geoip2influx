@@ -128,7 +128,7 @@ services:
 
 ## Grafana dashboard: 
 
-
+https://github.com/leo15dev/geoip2influx/blob/master/nginx_web_Geoip2.json
 
 
 
