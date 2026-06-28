@@ -77,10 +77,6 @@ Get your licence key here: https://www.maxmind.com/en/geolite2/signup
 
 The InfluxDB database/bucket and retention rules will be created automatically with the name you choose.
 
-```
--e INFLUX_DATABASE=geoip2influx or -e INFLUXDB_V2_BUCKET=geoip2influx
-```
-
 ### Docker compose
 
 ```yaml
@@ -88,7 +84,7 @@ services:
   geoip2influx:
     image: xcxxcxcxz/geoip2influx:test
     container_name: geoip2influx
-    network_mode: bridg
+    network_mode: bridge
     environment:
       - PUID=1000
       - PGID=1000
@@ -111,7 +107,7 @@ services:
   geoip2influx:
     image: xcxxcxcxz/geoip2influx:test
     container_name: geoip2influx
-    network_mode: bridg
+    network_mode: bridge
     environment:
       - PUID=1000
       - PGID=1000
