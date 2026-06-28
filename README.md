@@ -82,7 +82,7 @@ The InfluxDB database/bucket and retention rules will be created automatically w
 ```yaml
 services:
   geoip2influx:
-    image: xcxxcxcxz/geoip2influx:test
+    image: xcxxcxcxz/geoip2influx:stable
     container_name: geoip2influx
     network_mode: bridge
     environment:
@@ -105,7 +105,7 @@ services:
 ```yaml
 services:
   geoip2influx:
-    image: xcxxcxcxz/geoip2influx:test
+    image: xcxxcxcxz/geoip2influx:stable
     container_name: geoip2influx
     network_mode: bridge
     environment:
