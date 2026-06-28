@@ -1,5 +1,5 @@
-FROM lsiobase/alpine:3.20
-LABEL maintainer="GilbN"
+FROM lsiobase/alpine:3.24
+LABEL maintainer="leo15dev"
 
 WORKDIR /geoip2influx
 
