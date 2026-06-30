@@ -830,7 +830,7 @@
                       },
                       "spec": {
                         "alias": "$col",
-                        "query": "SELECT mean(\"request_time\") AS \"網頁響應時間(秒)\", mean(\"connect_time\") AS \"Upstream響應時間(秒)\" FROM \"nginx_access_logs\" WHERE $timeFilter AND \"host\" =~ /^$host$/ GROUP BY time($__interval) fill(null)",
+                        "query": "SELECT mean("request_time") AS "網頁響應時間(秒)", mean("connect_time") AS "Upstream響應時間(秒)" FROM "nginx_access_logs" WHERE $timeFilter AND "host" =~ /^$host$/ AND "status" != '101' AND "url" !~ /ws|stream|socket|live/ AND "request_time" < 30 GROUP BY time($__interval) fill(null)",
                         "rawQuery": true,
                         "resultFormat": "time_series"
                       }
