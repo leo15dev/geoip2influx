@@ -1,5 +1,5 @@
 FROM lsiobase/alpine:3.24
-LABEL maintainer="leo15dev"
+LABEL maintainer="xcxxcxcxz"
 
 WORKDIR /geoip2influx
 
@@ -10,16 +10,24 @@ COPY requirements.txt run.py ./
 COPY /geoip2influx /geoip2influx/
 
 RUN \
-echo " ## Installing packages ## " && \
-apk add --no-cache --virtual=build-dependencies \
-    python3-dev \
-    py3-pip \
+  echo " ## Runtime Packages ## " && \
+  apk add --no-cache \
+    python3 \
     logrotate \
     libmaxminddb && \
-echo "**** install packages ****" && \
-apk add --no-cache \
-    python3 && \
-echo " ## Installing python modules ## " && \
-python3 -m venv /lsiopy && \
-pip3 install --no-cache-dir -r requirements.txt
+  \
+  echo " Build-only Packages ## " && \
+  apk add --no-cache --virtual .build-deps \
+    py3-pip \
+    build-base \
+    python3-dev && \
+  \
+  echo " ## Python  ## " && \
+  python3 -m venv /lsiopy && \
+  /lsiopy/bin/pip install --no-cache-dir -U pip setuptools wheel && \
+  /lsiopy/bin/pip install --no-cache-dir -r requirements.txt && \
+  \
+  echo " ## Clean ## " && \
+  apk del .build-deps
+  
 COPY root/ /
